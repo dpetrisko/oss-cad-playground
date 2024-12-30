@@ -1,0 +1,94 @@
+
+$(eval $(call bsg_fn_build_if_new,iverilog,$(IVERILOG_DIR),$(VENV_TOUCH_DIR)))
+%/.iverilog_build: _check_venv
+	@$(CD) $(@D); \
+		$(AUTOCONF); \
+		./configure --prefix=$(VENV_DIR); \
+		$(MAKE) && $(MAKE) install; \
+		$(ECHO) "Successful $@"
+
+$(eval $(call bsg_fn_build_if_new,morty,$(MORTY_DIR),$(VENV_TOUCH_DIR)))
+%/.morty_build: _check_venv
+	@$(CD) $(@D); \
+		$(CARGO) update; \
+		$(CARGO) build --release; \
+		$(CP) target/release/morty $(VENV_BIN_DIR); \
+		$(ECHO) "Successful $@"
+
+$(eval $(call bsg_fn_build_if_missing,pdk,$(VENV_DIR),$(VENV_TOUCH_DIR)))
+%/.pdk_build: _check_venv
+	@$(VOLARE) enable --pdk-root=$(VENV_PDK_DIR) --pdk=sky130 $(PDK_HASH)
+	@$(ECHO) "Patching sky130 functional models"
+	@$(FIND) $(VENV_PDK_DIR) -name "sky130_fd_sc_hd.v" -exec \
+		$(SED) -i "s#endif SKY130_FD_SC_HD__LPFLOW_BLEEDER_FUNCTIONAL_V#endif // SKY130_FD_SC_HD__LPFLOW_BLEEDER_FUNCTIONAL_V#g" {} \;
+	@$(FIND) $(VENV_PDK_DIR) -name "primitives.v" -exec \
+		$(SED) -i "s#^`default_nettype none#//`default_nettype none#g" {} \;
+
+$(eval $(call bsg_fn_build_if_new,surelog,$(SURELOG_DIR),$(VENV_TOUCH_DIR)))
+%/.surelog_build: _check_venv
+	# Hack to avoid CAD tool version of java, obviously change if needed
+	@$(eval export PATH := $(dir $(realpath /bin/java)):$(PATH))
+	@$(eval SURELOG_CMAKE_FLAGS := -DCMAKE_BUILD_TYPE=Release)
+	@$(eval SURELOG_CMAKE_FLAGS += -DCMAKE_INSTALL_PREFIX=$(VENV_DIR))
+	@$(eval SURELOG_CMAKE_FLAGS += -DSURELOG_WITH_PYTHON=1)
+	@$(eval BUILD_DIR := $(@D)/build)
+	@$(CMAKE) -S $(@D) -B $(BUILD_DIR) $(SURELOG_CMAKE_FLAGS)
+	@$(MAKE) -C $(BUILD_DIR) && $(MAKE) -C $(BUILD_DIR) install
+
+$(eval $(call bsg_fn_build_if_new,surfer,$(SURFER_DIR),$(VENV_TOUCH_DIR)))
+%/.surfer_build: _check_venv
+	@$(CD) $(@D); \
+		$(CARGO) update; \
+		$(CARGO) build --release; \
+		$(CP) target/release/surfer $(VENV_BIN_DIR); \
+		$(ECHO) "Successful $@"
+
+$(eval $(call bsg_fn_build_if_new,svase,$(SVASE_DIR),$(VENV_TOUCH_DIR)))
+%/.svase_build: _check_venv
+	@$(CD) $(@D); \
+		$(MAKE) all; \
+		$(CP) build/svase $(VENV_BIN_DIR); \
+		$(ECHO) "Successful $@"
+
+$(eval $(call bsg_fn_build_if_new,verilator,$(VERILATOR_DIR),$(VENV_TOUCH_DIR)))
+%/.verilator_build: _check_venv
+	@$(CD) $(@D); \
+		$(AUTOCONF); \
+		./configure --prefix=$(VENV_DIR); \
+		$(MAKE) && $(MAKE) install; \
+		$(ECHO) "Successful $@"
+
+$(eval $(call bsg_fn_build_if_new,yosys,$(YOSYS_DIR),$(VENV_TOUCH_DIR)))
+%/.yosys_build: _check_venv
+	@$(eval export PREFIX=$(VENV_DIR))
+	@$(CD) $(@D); \
+		$(MAKE) config-gcc && $(MAKE) all && $(MAKE) install; \
+		$(ECHO) "Successful $@"
+
+$(eval $(call bsg_fn_build_if_new,yslang,$(YSLANG_DIR),$(VENV_TOUCH_DIR)))
+%/.yslang_build: _check_venv
+	@$(eval export YOSYS_DATA_DIR := $(shell $(YOSYS)-config --datdir))
+	@$(eval export YOSYS_PLUGIN_DIR := $(YOSYS_DATA_DIR)/plugins)
+	@$(eval export YOSYS_PREFIX := $(VENV_BIN_DIR)/)
+	@$(CD) $(@D); \
+		$(MAKE) build; \
+		$(MKDIR) -p $(YOSYS_PLUGIN_DIR); \
+		$(CP) build/*.so $(YOSYS_PLUGIN_DIR)
+
+$(eval $(call bsg_fn_build_if_new,f4pga,$(F4PGA_DIR),$(VENV_TOUCH_DIR)))
+%/.f4pga_build: _check_venv
+	@$(eval export PLUGIN_LIST := fasm params sdc design_introspection)
+	@$(ECHO) "Patching f4pga"
+	@$(FIND) $(@D) -name "params.cc" -exec \
+		$(SED) -i '/#include "kernel\/rtlil.h"/a#include <tcl.h>' {} \;
+	@$(FIND) $(@D) -name "sdc.cc" -exec \
+		$(SED) -i '/#include <vector>/a#include <tcl.h>' {} \;
+	@$(FIND) $(@D) -name "selection_to_tcl_list.h" -exec \
+		$(SED) -i '/#include "kernel\/register.h"/a#include <tcl.h>' {} \;
+	@$(FIND) $(@D) -name "get_cmd.cc" -exec \
+		$(SED) -i '/#include "get_cmd.h"/a#include <tcl.h>' {} \;
+	@$(FIND) $(@D) -name "get_count.cc" -exec \
+		$(SED) -i '/#include "kernel\/rtlil.h"/a#include <tcl.h>' {} \;
+	@$(CD) $(@D); \
+		$(MAKE) $(addprefix install_,$(PLUGIN_LIST))
+
