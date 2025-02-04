@@ -15,6 +15,42 @@ $(eval $(call bsg_fn_build_if_new,morty,$(MORTY_DIR),$(VENV_TOUCH_DIR)))
 		$(CP) target/release/morty $(VENV_BIN_DIR); \
 		$(ECHO) "Successful $@"
 
+$(eval $(call bsg_fn_build_if_new,opensta,$(OPENSTA_DIR),$(VENV_TOUCH_DIR)))
+%/.opensta_build: _check_venv
+	@$(eval CUDD_VERSION := 3.0.0)
+	@$(eval CUDD_BUILD := $(@D)/cuddbuild)
+	@$(eval CUDD_URL := https://github.com/davidkebo/cudd/raw/refs/heads/main/cudd_versions/cudd-$(CUDD_VERSION).tar.gz)
+	@$(MKDIR) -p $(CUDD_BUILD)
+	@$(CD) $(CUDD_BUILD); \
+		$(WGET) -qO- $(CUDD_URL) | $(TAR) xzv --strip-components=1; \
+		./configure --prefix=$(VENV_DIR); \
+		$(MAKE) install
+	@$(eval BISON_VERSION := 3.8.2)
+	@$(eval BISON_BUILD := $(@D)/bisonbuild)
+	@$(eval BISON_URL := https://ftp.gnu.org/gnu/bison/bison-$(BISON_VERSION).tar.gz)
+	@$(MKDIR) -p $(BISON_BUILD)
+	@$(CD) $(BISON_BUILD); \
+		$(WGET) -qO- $(BISON_URL) | $(TAR) xzv --strip-components=1; \
+		./configure --prefix=$(VENV_DIR); \
+		$(MAKE) install
+	@$(eval TCL_VERSION := 8.6.16)
+	@$(eval TCL_BUILD := $(@D)/tclbuild)
+	@$(eval TCL_URL := http://prdownloads.sourceforge.net/tcl/tcl$(TCL_VERSION)-src.tar.gz)
+	@$(MKDIR) -p $(TCL_BUILD)
+	@$(CD) $(TCL_BUILD); \
+		$(WGET) -qO- $(TCL_URL) | $(TAR) xzv --strip-components=1; \
+		./unix/configure --prefix=$(VENV_DIR); \
+		$(MAKE) install
+	@$(eval OPENSTA_BUILD := $(@D)/build)
+	@$(MKDIR) -p $(OPENSTA_BUILD)
+	@$(CMAKE) -S $(@D) -B $(OPENSTA_BUILD) \
+		-DCMAKE_INSTALL_PREFIX=$(VENV_DIR) \
+		-DCUDD_INCLUDE=$(VENV_INCLUDE_DIR) \
+		-DCUDD_LIB=$(VENV_LIB_DIR)/libcudd.a \
+		-DTCL_INCLUDE_PATH=$(VENV_INCLUDE_DIR) \
+		-DTCL_LIBRARY=$(VENV_LIB_DIR)/libtcl8.6.so
+	@$(MAKE) -C $(OPENSTA_BUILD) install
+
 $(eval $(call bsg_fn_build_if_missing,pdk,$(VENV_DIR),$(VENV_TOUCH_DIR)))
 %/.pdk_build: _check_venv
 	@$(VOLARE) enable --pdk-root=$(VENV_PDK_DIR) --pdk=sky130 $(PDK_HASH)
@@ -22,7 +58,9 @@ $(eval $(call bsg_fn_build_if_missing,pdk,$(VENV_DIR),$(VENV_TOUCH_DIR)))
 	@$(FIND) $(VENV_PDK_DIR) -name "sky130_fd_sc_hd.v" -exec \
 		$(SED) -i "s#endif SKY130_FD_SC_HD__LPFLOW_BLEEDER_FUNCTIONAL_V#endif // SKY130_FD_SC_HD__LPFLOW_BLEEDER_FUNCTIONAL_V#g" {} \;
 	@$(FIND) $(VENV_PDK_DIR) -name "primitives.v" -exec \
-		$(SED) -i "s#^`default_nettype none#//`default_nettype none#g" {} \;
+		$(SED) -i "s#^\`default_nettype none#//\`default_nettype none#g" {} \;
+	@$(FIND) $(VENV_PDK_DIR) -name "primitives.v" -exec \
+		$(SED) -i "s#^\`timescale #//\`timescale #g" {} \;
 
 $(eval $(call bsg_fn_build_if_new,surelog,$(SURELOG_DIR),$(VENV_TOUCH_DIR)))
 %/.surelog_build: _check_venv
@@ -45,10 +83,14 @@ $(eval $(call bsg_fn_build_if_new,surfer,$(SURFER_DIR),$(VENV_TOUCH_DIR)))
 
 $(eval $(call bsg_fn_build_if_new,svase,$(SVASE_DIR),$(VENV_TOUCH_DIR)))
 %/.svase_build: _check_venv
-	@$(CD) $(@D); \
-		$(MAKE) all; \
-		$(CP) build/svase $(VENV_BIN_DIR); \
-		$(ECHO) "Successful $@"
+	$(MKDIR) -p $(@D)/build
+	$(CD) $(@D); \
+	   ./scripts/gen_version.sh > include/version.h; \
+	   $(MAKE) -C deps
+	$(CD) $(@D)/build; \
+		$(CMAKE) ../; \
+		$(MAKE); \
+		$(CP) ./svase $(VENV_BIN_DIR)
 
 $(eval $(call bsg_fn_build_if_new,verilator,$(VERILATOR_DIR),$(VENV_TOUCH_DIR)))
 %/.verilator_build: _check_venv

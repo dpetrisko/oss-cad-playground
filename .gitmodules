@@ -31,3 +31,6 @@
 [submodule "morty"]
 	path = morty
 	url = https://github.com/pulp-platform/morty
+[submodule "OpenSTA"]
+	path = OpenSTA
+	url = https://github.com/The-OpenROAD-Project/OpenSTA.git
