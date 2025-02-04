@@ -1,0 +1,137 @@
+From 9617bd67b4a4f036823cea88637b8e2f78b12985 Mon Sep 17 00:00:00 2001
+From: Dan Petrisko <petrisko@cs.washington.edu>
+Date: Sat, 12 Apr 2025 05:47:30 -0700
+Subject: [PATCH] tcl8 compat
+
+---
+ design_introspection-plugin/get_cmd.cc              | 1 +
+ design_introspection-plugin/get_count.cc            | 1 +
+ design_introspection-plugin/selection_to_tcl_list.h | 1 +
+ params-plugin/params.cc                             | 1 +
+ sdc-plugin/sdc.cc                                   | 1 +
+ 5 files changed, 5 insertions(+)
+
+diff --git a/design_introspection-plugin/get_cmd.cc b/design_introspection-plugin/get_cmd.cc
+index 66401a6..c7b00c9 100644
+--- a/design_introspection-plugin/get_cmd.cc
++++ b/design_introspection-plugin/get_cmd.cc
+@@ -1,11 +1,12 @@
+ #include "get_cmd.h"
++#include <tcl.h>
+ 
+ USING_YOSYS_NAMESPACE
+ 
+ void GetCmd::help()
+ {
+     //   |---v---|---v---|---v---|---v---|---v---|---v---|---v---|---v---|---v---|---v---|
+     log("\n");
+     log("   get_%ss [-quiet] [-filter filter_expression] "
+         "<%s_selection> \n",
+         TypeName().c_str(), TypeName().c_str());
+diff --git a/design_introspection-plugin/get_count.cc b/design_introspection-plugin/get_count.cc
+index 850d3f6..9349ca8 100644
+--- a/design_introspection-plugin/get_count.cc
++++ b/design_introspection-plugin/get_count.cc
+@@ -13,20 +13,21 @@
+  * See the License for the specific language governing permissions and
+  * limitations under the License.
+  *
+  * SPDX-License-Identifier: Apache-2.0
+  *
+  */
+ 
+ #include "get_count.h"
+ 
+ #include "kernel/rtlil.h"
++#include <tcl.h>
+ 
+ USING_YOSYS_NAMESPACE
+ 
+ void GetCount::help()
+ {
+     log("\n");
+     log("    get_count <options> [selection]");
+     log("\n");
+     log("When used from inside the TCL interpreter returns count of selected objects.\n");
+     log("The object type to count may be given as an argument. Only one at a time.\n");
+diff --git a/design_introspection-plugin/selection_to_tcl_list.h b/design_introspection-plugin/selection_to_tcl_list.h
+index bbc4acb..10e23a7 100644
+--- a/design_introspection-plugin/selection_to_tcl_list.h
++++ b/design_introspection-plugin/selection_to_tcl_list.h
+@@ -12,20 +12,21 @@
+  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  * See the License for the specific language governing permissions and
+  * limitations under the License.
+  *
+  * SPDX-License-Identifier: Apache-2.0
+  */
+ #ifndef _SELECTION_TO_TCL_LIST_H_
+ #define _SELECTION_TO_TCL_LIST_H_
+ 
+ #include "kernel/register.h"
++#include <tcl.h>
+ 
+ USING_YOSYS_NAMESPACE
+ 
+ struct SelectionToTclList : public Pass {
+     SelectionToTclList() : Pass("selection_to_tcl_list", "Extract selection to TCL list") {}
+ 
+     void help() override;
+     void execute(std::vector<std::string> args, RTLIL::Design *design) override;
+ 
+   private:
+diff --git a/params-plugin/params.cc b/params-plugin/params.cc
+index e4c944d..0d0c27b 100644
+--- a/params-plugin/params.cc
++++ b/params-plugin/params.cc
+@@ -11,20 +11,21 @@
+  * distributed under the License is distributed on an "AS IS" BASIS,
+  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  * See the License for the specific language governing permissions and
+  * limitations under the License.
+  *
+  * SPDX-License-Identifier: Apache-2.0
+  */
+ #include "kernel/log.h"
+ #include "kernel/register.h"
+ #include "kernel/rtlil.h"
++#include <tcl.h>
+ 
+ USING_YOSYS_NAMESPACE
+ 
+ PRIVATE_NAMESPACE_BEGIN
+ 
+ void register_in_tcl_interpreter(const std::string &command)
+ {
+     Tcl_Interp *interp = yosys_get_tcl_interp();
+     std::string tcl_script = stringf("proc %s args { return [yosys %s {*}$args] }", command.c_str(), command.c_str());
+     Tcl_Eval(interp, tcl_script.c_str());
+diff --git a/sdc-plugin/sdc.cc b/sdc-plugin/sdc.cc
+index fd153c6..e66397b 100644
+--- a/sdc-plugin/sdc.cc
++++ b/sdc-plugin/sdc.cc
+@@ -18,20 +18,21 @@
+ #include <algorithm>
+ #include <array>
+ #include <istream>
+ #include <iterator>
+ #include <map>
+ #include <memory>
+ #include <ostream>
+ #include <sstream>
+ #include <string>
+ #include <vector>
++#include <tcl.h>
+ 
+ #include "clocks.h"
+ #include "kernel/log.h"
+ #include "kernel/register.h"
+ #include "kernel/rtlil.h"
+ #include "propagation.h"
+ #include "sdc_writer.h"
+ #include "set_clock_groups.h"
+ #include "set_false_path.h"
+ #include "set_max_delay.h"
+-- 
+2.45.2
+

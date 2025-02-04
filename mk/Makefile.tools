@@ -1,0 +1,85 @@
+
+$(eval $(call bsg_tgt_build_submodule,iverilog,$(IVERILOG_DIR),$(BSG_TOUCH_DIR),$(BSG_PATCH_DIR),$(BSG_WORK_DIR)))
+%/.iverilog_build:
+	$(CD) $<; $(AUTOCONF) -o ./configure configure.ac
+	$(CD) $<; $</configure --prefix=$(BSG_INSTALL_DIR)
+	$(MAKE) -C $< install
+
+$(eval $(call bsg_tgt_build_submodule,morty,$(MORTY_DIR),$(BSG_TOUCH_DIR),$(BSG_PATCH_DIR),$(BSG_WORK_DIR)))
+%/.morty_build:
+	@$(CD) $<; $(CARGO) update
+	@$(CD) $<; $(CARGO) build --release
+	@$(CP) $</target/release/morty $(BSG_BIN_DIR)
+
+$(eval $(call bsg_tgt_build_submodule,opensta,$(OPENSTA_DIR),$(BSG_TOUCH_DIR),$(BSG_PATCH_DIR),$(BSG_WORK_DIR)))
+%/.opensta_build:
+	@$(CMAKE) -S $< -B $(@D) \
+		-DCMAKE_INSTALL_PREFIX=$(BSG_INSTALL_DIR) \
+		-DCUDD_INCLUDE=$(BSG_INCLUDE_DIR) \
+		-DCUDD_LIB=$(BSG_LIB_DIR)/libcudd.a \
+		-DTCL_INCLUDE_PATH=$(BSG_INCLUDE_DIR) \
+		-DTCL_LIBRARY=$(BSG_LIB_DIR)/libtcl8.6.so
+	@$(MAKE) -C $(@D) install
+
+PACKAGE_SCRIPT=import sysconfig; print(sysconfig.get_paths()['purelib'])
+$(eval $(call bsg_tgt_build_submodule,surelog,$(SURELOG_DIR),$(BSG_TOUCH_DIR),$(BSG_PATCH_DIR),$(BSG_WORK_DIR)))
+%/.surelog_build:
+	# Hack to avoid CAD tool version of java, obviously change if needed
+	@$(eval export PATH := $(dir $(realpath /bin/java)):$(PATH))
+	@$(eval export UHDM_FLAGS := UHDM_WITH_PYTHON=1)
+	@$(eval export SURELOG_CMAKE_FLAGS := -DCMAKE_BUILD_TYPE=Release)
+	@$(eval export SURELOG_CMAKE_FLAGS += -DCMAKE_INSTALL_PREFIX=$(BSG_INSTALL_DIR))
+	@$(eval SITE_PACKAGE_DIR = $(shell python -c "$(PACKAGE_SCRIPT)"))
+	@$(CMAKE) -S $< -B $(@D) $(SURELOG_CMAKE_FLAGS)
+	@$(MAKE) -C $</third_party/UHDM release-shared UHDM_WITH_PYTHON=1
+	@$(MAKE) -C $(@D) install
+
+$(eval $(call bsg_tgt_build_submodule,surfer,$(SURFER_DIR),$(BSG_TOUCH_DIR),$(BSG_PATCH_DIR),$(BSG_WORK_DIR)))
+%/.surfer_build:
+	@$(CD) $<; $(CARGO) update;
+	@$(CD) $<; $(CARGO) build --release;
+	@$(CP) $</target/release/surfer $(BSG_BIN_DIR)
+
+$(eval $(call bsg_tgt_build_submodule,svase,$(SVASE_DIR),$(BSG_TOUCH_DIR),$(BSG_PATCH_DIR),$(BSG_WORK_DIR)))
+%/.svase_build:
+	@$(eval export CMAKE_C_FLAGS := -Wno-dangling-reference)
+	@$(eval export CMAKE_CXX_FLAGS := -Wno-dangling-reference)
+	@$(MAKE) -C $</deps all
+	@$(MAKE) -C $< release
+	@$(CP) $</build/svase $(BSG_BIN_DIR)
+
+$(eval $(call bsg_tgt_build_submodule,verilator,$(VERILATOR_DIR),$(BSG_TOUCH_DIR),$(BSG_PATCH_DIR),$(BSG_WORK_DIR)))
+%/.verilator_build:
+	@$(CD) $<; $(AUTOCONF) -o ./configure configure.ac
+	@$(CD) $(@D); $</configure --prefix=$(BSG_INSTALL_DIR)
+	@$(MAKE) -C $(@D)
+	@$(MAKE) -C $(@D) install
+	@$(MAKE) -C $(@D) install-all
+
+$(eval $(call bsg_tgt_build_submodule,yosys,$(YOSYS_DIR),$(BSG_TOUCH_DIR),$(BSG_PATCH_DIR),$(BSG_WORK_DIR)))
+%/.yosys_build:
+	@$(eval export PREFIX=$(BSG_INSTALL_DIR))
+	@$(eval export TCL_VERSION=tcl8.6)
+	@$(eval export TCL_LIBS="-L$(BSG_LIB_DIR) -l$(TCL_VERSION)")
+	@$(MAKE) -C $< config-gcc
+	@$(MAKE) -C $< install
+
+$(eval $(call bsg_tgt_build_submodule,yslang,$(YSLANG_DIR),$(BSG_TOUCH_DIR),$(BSG_PATCH_DIR),$(BSG_WORK_DIR)))
+%/.yslang_build:
+	@$(eval export YOSYS_DATA_DIR := $(shell $(YOSYS)-config --datdir))
+	@$(eval export YOSYS_PLUGIN_DIR := $(YOSYS_DATA_DIR)/plugins)
+	@$(eval export YOSYS_PREFIX := $(BSG_BIN_DIR)/)
+	@$(MKDIR) -p $(YOSYS_PLUGIN_DIR)
+	@$(MAKE) -C $< build
+	@$(CP) $</build/*.so $(YOSYS_PLUGIN_DIR)
+
+$(eval $(call bsg_tgt_build_submodule,f4pga,$(F4PGA_DIR),$(BSG_TOUCH_DIR),$(BSG_PATCH_DIR),$(BSG_WORK_DIR)))
+%/.f4pga_build:
+	@$(eval export PLUGIN_LIST := fasm params sdc design_introspection)
+	@$(MAKE) -C $< $(addprefix install_,$(PLUGIN_LIST))
+
+
+$(eval $(call bsg_tgt_build_submodule,sv2v,$(SV2V_DIR),$(BSG_TOUCH_DIR),$(BSG_PATCH_DIR),$(BSG_WORK_DIR)))
+%/.sv2v_build:
+	@$(CD) $<; $(STACK) install --install-ghc --local-bin-path $(BSG_BIN_DIR)
+

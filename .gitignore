@@ -1,2 +1,4 @@
-.VENV/
+install/
+work/
 bsg_cadenv/
+*.swp
