@@ -1,0 +1,100 @@
+
+.SECONDARY:
+
+%/bin/activate:
+	@$(PYTHON) -m virtualenv $(BSG_INSTALL_DIR)
+	@$(@D)/pip install --upgrade pip
+	@$(@D)/pip install -r $(BSG_MK_DIR)/requirements.txt
+
+%/bin/cadactivate: %/bin/activate
+	@$(ECHO) "echo 'setting metavariables'" > $@
+	@$(ECHO) "export CADACTIVATE=1" >> $@
+	@$(ECHO) "export VIRTUAL_ENV_DISABLE_PROMPT=1" >> $@
+	@$(ECHO) "echo 'setting cadenv environment variables'" >> $@
+	@$(ECHO) "echo 'sourcing venv activate'" >> $@
+	@$(ECHO) "source $(abspath $<)" >> $@
+	@$(ECHO) "echo 'updating path'" >> $@
+	@$(ECHO) "export LM_LICENSE_FILE=$(LM_LICENSE_FILE)" >> $@
+	@$(ECHO) "export VCS_HOME=$(VCS_HOME)" >> $@
+	@$(ECHO) "export VERDI_HOME=$(VERDI_HOME)" >> $@
+	@$(ECHO) "export SYN_RELEASE=$(SYN_RELEASE)" >> $@
+	@$(ECHO) "export LC_RELEASE=$(LC_RELEASE)" >> $@
+	@$(ECHO) "export GENUS_RELEASE=$(GENUS_RELEASE)" >> $@
+	@$(ECHO) "export PATH=\$${PATH}:\$${GENUS_RELEASE}/bin" >> $@
+	@$(ECHO) "export PATH=\$${PATH}:\$${LC_RELEASE}/bin" >> $@
+	@$(ECHO) "export PATH=\$${PATH}:\$${SYN_RELEASE}/bin" >> $@
+	@$(ECHO) "export PATH=\$${PATH}:\$${VCS_HOME}/bin" >> $@
+	@$(ECHO) "export PATH=\$${PATH}:\$${VERDI_HOME}/bin" >> $@
+	@$(ECHO) "echo 'patching gcc paths'" >> $@
+	@$(ECHO) "export CC=$(shell which gcc)" >> $@
+	@$(ECHO) "export CXX=$(shell which g++)" >> $@
+	@$(ECHO) "echo 'updating ldd path'" >> $@
+	@$(ECHO) "export LD_LIBRARY_PATH=$*/lib:\$${LD_LIBRARY_PATH}" >> $@
+	@$(ECHO) "export LD_LIBRARY_PATH=$*/lib64:\$${LD_LIBRARY_PATH}" >> $@
+	@$(ECHO) "caddeactivate () { unset CADACTIVATE; }" >> $@
+
+%/pdk/install: %/bin/cadactivate
+	@$(eval PDK_ROOT ?= $(BSG_INSTALL_DIR)/pdk)
+	@$(eval PDK_HASH ?= 0fe599b2afb6708d281543108caf8310912f54af)
+	@$(eval PDK_FAMILY ?= sky130)
+	@$(eval PDK ?= sky130A)
+	@$(eval PDK_LIB ?= sky130_fd_sc_hd)
+	@$(eval PDK_CORNER ?= tt_025C_1v80)
+	@$*/bin/volare enable --pdk-root=$(PDK_ROOT) --pdk=$(PDK_FAMILY) $(PDK_HASH)
+	@$(ECHO) "Patching sky130 functional models"
+	@$(FIND) $(@D) -type f -name "sky130_fd_sc_hd.v" -exec \
+		$(SED) -i "s#endif SKY130_FD_SC_HD__LPFLOW_BLEEDER_FUNCTIONAL_V#endif // SKY130_FD_SC_HD__LPFLOW_BLEEDER_FUNCTIONAL_V#g" {} \;
+	@$(FIND) $(@D) -type f \( -name "primitives.v" -or -name "sky130_fd_sc_hd.v" \) -exec \
+		$(SED) -i "s#^\`default_nettype none#//\`default_nettype none#g" {} \;
+	@$(FIND) $(@D) -type f \( -name "primitives.v" -or -name "sky130_fd_sc_hd.v" \) -exec \
+		$(SED) -i "s#^\`timescale #//\`timescale #g" {} \;
+	@$(ECHO) "echo 'setting PDK environment variables in $@'" >> $@
+	@$(ECHO) "export PDK_ROOT=$(PDK_ROOT)" >> $<
+	@$(ECHO) "export PDK_HASH=$(PDK_HASH)" >> $<
+	@$(ECHO) "export PDK=$(PDK)" >> $<
+	@$(ECHO) "export PDK_LIB=$(PDK_LIB)" >> $<
+	@$(ECHO) "export PDK_CORNER=$(PDK_CORNER)" >> $<
+	@$(TOUCH) $@
+
+%/lib/libcudd.a:
+	@$(eval CUDD_VERSION := 3.0.0)
+	@$(eval CUDD_BUILD := $(BSG_WORK_DIR)/cudd)
+	@$(eval CUDD_URL := https://github.com/davidkebo/cudd/raw/refs/heads/main/cudd_versions/cudd-$(CUDD_VERSION).tar.gz)
+	@$(MKDIR) -p $(CUDD_BUILD)
+	@$(CD) $(CUDD_BUILD); \
+		$(WGET) -qO- $(CUDD_URL) | $(TAR) xzv --strip-components=1; \
+		./configure --prefix=$(BSG_INSTALL_DIR); \
+		$(MAKE) install
+
+%/bin/bison:
+	@$(eval BISON_VERSION := 3.8.2)
+	@$(eval BISON_BUILD := $(BSG_WORK_DIR)/bison)
+	@$(eval BISON_URL := https://ftp.gnu.org/gnu/bison/bison-$(BISON_VERSION).tar.gz)
+	@$(MKDIR) -p $(BISON_BUILD)
+	@$(CD) $(BISON_BUILD); \
+		$(WGET) -qO- $(BISON_URL) | $(TAR) xzv --strip-components=1; \
+		./configure --prefix=$(BSG_INSTALL_DIR); \
+		$(MAKE) install
+
+%/bin/tclsh8.6:
+	@$(eval TCL_VERSION := 8.6.16)
+	@$(eval TCL_BUILD := $(BSG_WORK_DIR)/tcl)
+	@$(eval TCL_URL := http://prdownloads.sourceforge.net/tcl/tcl$(TCL_VERSION)-src.tar.gz)
+	@$(MKDIR) -p $(TCL_BUILD)
+	@$(CD) $(TCL_BUILD); \
+		$(WGET) -qO- $(TCL_URL) | $(TAR) xzv --strip-components=1; \
+		./unix/configure --prefix=$(BSG_INSTALL_DIR); \
+		$(MAKE) install
+
+_build_venv:
+	@$(MAKE) $(BSG_INSTALL_DIR)/pdk/install
+	@$(MAKE) $(BSG_INSTALL_DIR)/lib/libcudd.a
+	@$(MAKE) $(BSG_INSTALL_DIR)/bin/bison
+	@$(MAKE) $(BSG_INSTALL_DIR)/bin/tclsh8.6
+	@$(ECHO) "SUCCESS: venv created; activate with 'source $(BSG_INSTALL_DIR)/bin/cadactivate'"
+
+_check_venv:
+	@$(PYTHON) -c "import os; os.environ['VIRTUAL_ENV']" || ($(ECHO) "venv not detected" && $(FALSE))
+	@$(PYTHON) -c "import os; os.environ['CADACTIVATE']" || ($(ECHO) "cadactivate not detected" && $(FALSE))
+	@$(ECHO) "SUCCESS: venv && cadactivate detected!"
+

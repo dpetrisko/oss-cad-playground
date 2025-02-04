@@ -1,3 +1,5 @@
 volare
 matplotlib
 orderedmultidict
+setuptools
+build

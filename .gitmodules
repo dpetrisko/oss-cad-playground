@@ -1,33 +1,56 @@
-[submodule "basejump_stl"]
-	path = basejump_stl
-	url = https://github.com/bespoke-silicon-group/basejump_stl
-[submodule "bsg_pearls"]
-	path = bsg_pearls
-	url = https://github.com/bespoke-silicon-group/bsg_pearls
 [submodule "iverilog"]
-	path = iverilog
-	url = https://github.com/steveicarus/iverilog
+    path = iverilog
+    url = https://github.com/steveicarus/iverilog
+    branch = master
+    ignore = dirty
 [submodule "verilator"]
-	path = verilator
-	url = https://github.com/verilator/verilator
+    path = verilator
+    url = https://github.com/verilator/verilator
+    branch = master
+    ignore = dirty
 [submodule "surfer"]
-	path = surfer
+    path = surfer
     url = https://gitlab.com/surfer-project/surfer.git
+    branch = master
+    ignore = dirty
 [submodule "yosys-slang"]
-	path = yosys-slang
-	url = https://github.com/povik/yosys-slang
+    path = yosys-slang
+    url = https://github.com/povik/yosys-slang
+    branch = master
+    ignore = dirty
 [submodule "yosys"]
-	path = yosys
-	url = https://github.com/YosysHQ/yosys
+    path = yosys
+    url = https://github.com/YosysHQ/yosys
+    branch = master
+    ignore = dirty
 [submodule "yosys-f4pga-plugins"]
-	path = yosys-f4pga-plugins
-	url = https://github.com/chipsalliance/yosys-f4pga-plugins.git
+    path = yosys-f4pga-plugins
+    url = https://github.com/chipsalliance/yosys-f4pga-plugins.git
+    branch = master
+    ignore = dirty
 [submodule "Surelog"]
-	path = Surelog
-	url = https://github.com/ChipsAlliance/Surelog
-[submodule "svase"]
-	path = svase
-	url = https://github.com/pulp-platform/svase.git
+    path = Surelog
+    url = https://github.com/dpetrisko/Surelog
+    branch = master
+    ignore = dirty
 [submodule "morty"]
-	path = morty
-	url = https://github.com/pulp-platform/morty
+    path = morty
+    url = https://github.com/pulp-platform/morty
+    branch = master
+    ignore = dirty
+[submodule "svase"]
+    path = svase
+    url = https://github.com/pulp-platform/svase
+    branch = master
+    ignore = dirty
+[submodule "OpenSTA"]
+    path = OpenSTA
+    url = https://github.com/The-OpenROAD-Project/OpenSTA.git
+    branch = master
+    ignore = dirty
+[submodule "sv2v"]
+    path = sv2v
+    url = https://github.com/zachjs/sv2v
+    branch = master
+    ignore = dirty
+

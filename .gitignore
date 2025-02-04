@@ -1,2 +1,6 @@
-.VENV/
+install/
+work/
 bsg_cadenv/
+basejump_stl/
+bsg_pearls/
+*.swp
