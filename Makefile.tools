@@ -55,11 +55,11 @@ $(eval $(call bsg_fn_build_if_missing,pdk,$(VENV_DIR),$(VENV_TOUCH_DIR)))
 %/.pdk_build: _check_venv
 	@$(VOLARE) enable --pdk-root=$(VENV_PDK_DIR) --pdk=sky130 $(PDK_HASH)
 	@$(ECHO) "Patching sky130 functional models"
-	@$(FIND) $(VENV_PDK_DIR) -name "sky130_fd_sc_hd.v" -exec \
-		$(SED) -i "s#endif SKY130_FD_SC_HD__LPFLOW_BLEEDER_FUNCTIONAL_V#endif // SKY130_FD_SC_HD__LPFLOW_BLEEDER_FUNCTIONAL_V#g" {} \;
-	@$(FIND) $(VENV_PDK_DIR) -name "primitives.v" -exec \
-		$(SED) -i "s#^\`default_nettype none#//\`default_nettype none#g" {} \;
-	@$(FIND) $(VENV_PDK_DIR) -name "primitives.v" -exec \
+	@$(FIND) $(VENV_PDK_DIR) -type f -name "sky130_fd_sc_hd.v" -exec \
+	   $(SED) -i "s#endif SKY130_FD_SC_HD__LPFLOW_BLEEDER_FUNCTIONAL_V#endif // SKY130_FD_SC_HD__LPFLOW_BLEEDER_FUNCTIONAL_V#g" {} \;
+	@$(FIND) $(VENV_PDK_DIR) -type f \( -name "primitives.v" -or -name "sky130_fd_sc_hd.v" \) -exec \
+	   $(SED) -i "s#^\`default_nettype none#//\`default_nettype none#g" {} \;
+	@$(FIND) $(VENV_PDK_DIR) -type f \( -name "primitives.v" -or -name "sky130_fd_sc_hd.v" \) -exec \
 		$(SED) -i "s#^\`timescale #//\`timescale #g" {} \;
 
 $(eval $(call bsg_fn_build_if_new,surelog,$(SURELOG_DIR),$(VENV_TOUCH_DIR)))
@@ -103,6 +103,8 @@ $(eval $(call bsg_fn_build_if_new,verilator,$(VERILATOR_DIR),$(VENV_TOUCH_DIR)))
 $(eval $(call bsg_fn_build_if_new,yosys,$(YOSYS_DIR),$(VENV_TOUCH_DIR)))
 %/.yosys_build: _check_venv
 	@$(eval export PREFIX=$(VENV_DIR))
+	@$(eval export TCL_VERSION=tcl8.6)
+	@$(eval export TCL_LIBS="-L$(VENV_LIB_DIR) -l$(TCL_VERSION)")
 	@$(CD) $(@D); \
 		$(MAKE) config-gcc && $(MAKE) all && $(MAKE) install; \
 		$(ECHO) "Successful $@"
