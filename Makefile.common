@@ -43,9 +43,9 @@ endef
 define bsg_fn_mksubdir
 	$(eval $@_hookdirs := $(1))
 	$(eval $@_newvars := $(filter-out $(VARS_OLD),$(.VARIABLES)))
-	$(eval $@_bpvars := $(filter BP_%,$($@_newvars)))
+	$(eval $@_bsgvars := $(filter BSG_%,$($@_newvars)))
 	$(eval $@_newdirs := $(foreach root,$($@_hookdirs),\
-		$(foreach var,$($@_bpvars),\
+		$(foreach var,$($@_bsgvars),\
 			$(if $(filter $(root)%,$($(var))),\
 				$($(var))))\
 		)\
@@ -225,9 +225,11 @@ endif
 ## Other tools
 ##########################################################
 AUTOCONF  ?= autoconf
+CARGO     ?= cargo
 CAT       ?= cat
 CMAKE     ?= $(if $(shell which cmake3),cmake3,cmake)
 CD        ?= cd
+CHMOD     ?= chmod
 CP        ?= cp
 CURL      ?= curl
 DIFF      ?= diff
@@ -235,6 +237,7 @@ DOCKER    ?= docker
 ECHO      ?= echo
 ENVSUBST  ?= envsubst
 EXIT      ?= exit
+FALSE     ?= false
 FIND      ?= find
 GCC       ?= gcc
 GIT       ?= git
@@ -252,6 +255,7 @@ TAIL      ?= tail
 TAR       ?= tar
 TEE       ?= tee
 TEST      ?= test
+TRUE      ?= true
 TOUCH     ?= touch
 WCOUNT    ?= wc -l
 WGET      ?= wget
