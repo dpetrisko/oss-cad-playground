@@ -1,7 +1,11 @@
+TOP ?= $(shell git rev-parse --show-toplevel)
 
-include Makefile.common
-include Makefile.env
-include Makefile.tools
+# TODO: Remove
+BSG_CADENV_IGNORE_MACHINE := 1
+
+include $(TOP)/Makefile.common
+include $(TOP)/Makefile.env
+include $(TOP)/Makefile.tools
 
 tools: _check_venv
 tools: ## makes all OSS cad tools
