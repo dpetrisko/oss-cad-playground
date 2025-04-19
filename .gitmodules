@@ -1,36 +1,72 @@
 [submodule "basejump_stl"]
-	path = basejump_stl
-	url = https://github.com/bespoke-silicon-group/basejump_stl
+    path = basejump_stl
+    url = https://github.com/bespoke-silicon-group/basejump_stl
+    branch = master
+    ignore = dirty
+    shallow = true
 [submodule "bsg_pearls"]
-	path = bsg_pearls
-	url = https://github.com/bespoke-silicon-group/bsg_pearls
+    path = bsg_pearls
+    url = https://github.com/bespoke-silicon-group/bsg_pearls
+    branch = master
+    ignore = dirty
+    shallow = true
 [submodule "iverilog"]
-	path = iverilog
-	url = https://github.com/steveicarus/iverilog
+    path = iverilog
+    url = https://github.com/steveicarus/iverilog
+    branch = master
+    ignore = dirty
+    shallow = true
 [submodule "verilator"]
-	path = verilator
-	url = https://github.com/verilator/verilator
+    path = verilator
+    url = https://github.com/verilator/verilator
+    branch = master
+    ignore = dirty
+    shallow = true
 [submodule "surfer"]
-	path = surfer
+    path = surfer
     url = https://gitlab.com/surfer-project/surfer.git
+    branch = master
+    ignore = dirty
+    shallow = true
 [submodule "yosys-slang"]
-	path = yosys-slang
-	url = https://github.com/povik/yosys-slang
+    path = yosys-slang
+    url = https://github.com/povik/yosys-slang
+    branch = master
+    ignore = dirty
+    shallow = true
 [submodule "yosys"]
-	path = yosys
-	url = https://github.com/YosysHQ/yosys
+    path = yosys
+    url = https://github.com/YosysHQ/yosys
+    branch = master
+    ignore = dirty
+    shallow = true
 [submodule "yosys-f4pga-plugins"]
-	path = yosys-f4pga-plugins
-	url = https://github.com/chipsalliance/yosys-f4pga-plugins.git
+    path = yosys-f4pga-plugins
+    url = https://github.com/chipsalliance/yosys-f4pga-plugins.git
+    branch = master
+    ignore = dirty
+    shallow = true
 [submodule "Surelog"]
-	path = Surelog
-	url = https://github.com/ChipsAlliance/Surelog
+    path = Surelog
+    url = https://github.com/ChipsAlliance/Surelog
+    branch = master
+    ignore = dirty
+    shallow = true
 [submodule "svase"]
-	path = svase
-	url = https://github.com/pulp-platform/svase.git
+    path = svase
+    url = https://github.com/pulp-platform/svase.git
+    branch = master
+    ignore = dirty
+    shallow = true
 [submodule "morty"]
-	path = morty
-	url = https://github.com/pulp-platform/morty
+    path = morty
+    url = https://github.com/pulp-platform/morty
+    branch = master
+    ignore = dirty
+    shallow = true
 [submodule "OpenSTA"]
-	path = OpenSTA
-	url = https://github.com/The-OpenROAD-Project/OpenSTA.git
+    path = OpenSTA
+    url = https://github.com/The-OpenROAD-Project/OpenSTA.git
+    branch = master
+    ignore = dirty
+    shallow = true
