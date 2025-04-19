@@ -27,7 +27,6 @@ $(eval $(call bsg_tgt_build_submodule,surelog,$(SURELOG_DIR),$(BSG_TOUCH_DIR),$(
 	@$(eval export PATH := $(dir $(realpath /bin/java)):$(PATH))
 	@$(eval export SURELOG_CMAKE_FLAGS := -DCMAKE_BUILD_TYPE=Release)
 	@$(eval export SURELOG_CMAKE_FLAGS += -DCMAKE_INSTALL_PREFIX=$(BSG_INSTALL_DIR))
-	@$(eval export SURELOG_CMAKE_FLAGS += -DSURELOG_WITH_PYTHON=1)
 	@$(CMAKE) -S $< -B $(@D) $(SURELOG_CMAKE_FLAGS)
 	@$(MAKE) -C $(@D) install
 

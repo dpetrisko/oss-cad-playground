@@ -7,7 +7,6 @@ include $(BSG_MK_DIR)/Makefile.*
 venv: ## Builds the Python virtual environment
 venv: checkout
 	@$(MAKE) _build_venv
-	@$(MAKE) _check_venv
 
 tools: _check_venv
 tools: ## makes all OSS cad tools

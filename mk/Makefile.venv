@@ -2,7 +2,7 @@
 .SECONDARY:
 
 %/bin/activate:
-	@$(VIRTUALENV) $(BSG_INSTALL_DIR)
+	@$(PYTHON) -m virtualenv $(BSG_INSTALL_DIR)
 	@$(@D)/pip install --upgrade pip
 	@$(@D)/pip install -r $(BSG_DOCKER_DIR)/requirements.txt
 
