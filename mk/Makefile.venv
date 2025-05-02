@@ -28,6 +28,7 @@
 	@$(ECHO) "echo 'updating ldd path'" >> $@
 	@$(ECHO) "export LD_LIBRARY_PATH=$*/lib:\$${LD_LIBRARY_PATH}" >> $@
 	@$(ECHO) "export LD_LIBRARY_PATH=$*/lib64:\$${LD_LIBRARY_PATH}" >> $@
+	@$(ECHO) "caddeactivate () { unset CADACTIVATE; }" >> $@
 
 %/pdk/install: %/bin/cadactivate
 	@$(eval PDK_ROOT ?= $(BSG_INSTALL_DIR)/pdk)
