@@ -1,4 +1,0 @@
-volare
-matplotlib
-orderedmultidict
-setuptools

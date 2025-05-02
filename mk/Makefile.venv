@@ -25,6 +25,9 @@
 	@$(ECHO) "export PATH=\$${PATH}:\$${SYN_RELEASE}/bin" >> $@
 	@$(ECHO) "export PATH=\$${PATH}:\$${VCS_HOME}/bin" >> $@
 	@$(ECHO) "export PATH=\$${PATH}:\$${VERDI_HOME}/bin" >> $@
+	@$(ECHO) "echo 'patching gcc paths'" >> $@
+	@$(ECHO) "export CC=$(shell which gcc)" >> $@
+	@$(ECHO) "export CXX=$(shell which g++)" >> $@
 	@$(ECHO) "echo 'updating ldd path'" >> $@
 	@$(ECHO) "export LD_LIBRARY_PATH=$*/lib:\$${LD_LIBRARY_PATH}" >> $@
 	@$(ECHO) "export LD_LIBRARY_PATH=$*/lib64:\$${LD_LIBRARY_PATH}" >> $@
