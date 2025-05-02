@@ -21,12 +21,18 @@ $(eval $(call bsg_tgt_build_submodule,opensta,$(OPENSTA_DIR),$(BSG_TOUCH_DIR),$(
 		-DTCL_LIBRARY=$(BSG_LIB_DIR)/libtcl8.6.so
 	@$(MAKE) -C $(@D) install
 
+PACKAGE_SCRIPT=import sysconfig; print(sysconfig.get_paths()['purelib'])
 $(eval $(call bsg_tgt_build_submodule,surelog,$(SURELOG_DIR),$(BSG_TOUCH_DIR),$(BSG_PATCH_DIR),$(BSG_WORK_DIR)))
 %/.surelog_build:
 	# Hack to avoid CAD tool version of java, obviously change if needed
 	@$(eval export PATH := $(dir $(realpath /bin/java)):$(PATH))
+	@$(eval export UHDM_FLAGS := UHDM_WITH_PYTHON=1)
 	@$(eval export SURELOG_CMAKE_FLAGS := -DCMAKE_BUILD_TYPE=Release)
 	@$(eval export SURELOG_CMAKE_FLAGS += -DCMAKE_INSTALL_PREFIX=$(BSG_INSTALL_DIR))
+	@$(eval SITE_PACKAGE_DIR = $(shell python -c "$(PACKAGE_SCRIPT)"))
+	@$(MAKE) -C $</third_party/UHDM release-shared $(UHDM_FLAGS)
+	@$(CP) $</third_party/UHDM/build/python/_py_uhdm.so $(SITE_PACKAGE_DIR)
+	@$(CP) $</third_party/UHDM/build/python/uhdm.py $(SITE_PACKAGE_DIR)
 	@$(CMAKE) -S $< -B $(@D) $(SURELOG_CMAKE_FLAGS)
 	@$(MAKE) -C $(@D) install
 
