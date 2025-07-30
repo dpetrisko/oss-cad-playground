@@ -51,7 +51,9 @@
 	@$(FIND) $(@D) -type f \( -name "$(PDK_PRIM).v" -or -name "$(PDK_LIB).v" \) -exec \
 		$(SED) -i "s#^\`timescale #//\`timescale #g" {} \;
 	@$(FIND) $(@D) -type f \( -name "$(PDK_PRIM).v" -or -name "$(PDK_LIB).v" \) -exec \
-		$(SED) -i "1i \`define UNIT_DELAY #1" {} \;
+		$(SED) -i "1i \`define UNIT_DELAY" {} \;
+	@$(FIND) $(@D) -type f \( -name "$(PDK_PRIM).v" -or -name "$(PDK_LIB).v" \) -exec \
+		$(SED) -i "1i \`define SKY130_FD_SC_HD__LPFLOW_BLEEDER_1_TIMING_V" {} \;
 	@$(ECHO) "echo 'setting PDK environment variables in $@'" >> $@
 	@$(ECHO) "export PDK_ROOT=$(PDK_ROOT)" >> $<
 	@$(ECHO) "export PDK_HASH=$(PDK_HASH)" >> $<
