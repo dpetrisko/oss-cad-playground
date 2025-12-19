@@ -30,7 +30,7 @@
     ignore = dirty
 [submodule "Surelog"]
     path = Surelog
-    url = https://github.com/dpetrisko/Surelog
+    url = https://github.com/ChipsAlliance/Surelog
     branch = master
     ignore = dirty
 [submodule "morty"]
