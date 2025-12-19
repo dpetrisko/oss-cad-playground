@@ -42,7 +42,7 @@
 	@$(eval PDK_LIB ?= sky130_fd_sc_hd)
 	@$(eval PDK_PRIM ?= primitives)
 	@$(eval PDK_CORNER ?= tt_025C_1v80)
-	@$*/bin/volare enable --pdk-root=$(PDK_ROOT) --pdk=$(PDK_FAMILY) $(PDK_HASH)
+	@$*/bin/ciel enable --pdk-root=$(PDK_ROOT) --pdk=$(PDK_FAMILY) $(PDK_HASH)
 	@$(ECHO) "Patching sky130 functional models"
 	@$(FIND) $(@D) -type f -name "$(PDK_LIB).v" -exec \
 		$(SED) -i "s#endif SKY130_FD_SC_HD__LPFLOW_BLEEDER_FUNCTIONAL_V#endif // SKY130_FD_SC_HD__LPFLOW_BLEEDER_FUNCTIONAL_V#g" {} \;
