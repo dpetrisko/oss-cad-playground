@@ -28,6 +28,7 @@ $(eval $(call bsg_tgt_build_submodule,surelog,$(SURELOG_DIR),$(BSG_TOUCH_DIR),$(
 	@$(eval export PATH := $(dir $(realpath /bin/java)):$(PATH))
 	@$(eval export UHDM_FLAGS := UHDM_WITH_PYTHON=1)
 	@$(eval export SURELOG_CMAKE_FLAGS := -DCMAKE_BUILD_TYPE=Release)
+	@$(eval export SURELOG_CMAKE_FLAGS := -DWITH_LIBCXX=Off)
 	@$(eval export SURELOG_CMAKE_FLAGS += -DCMAKE_INSTALL_PREFIX=$(BSG_INSTALL_DIR))
 	@$(eval SITE_PACKAGE_DIR = $(shell python -c "$(PACKAGE_SCRIPT)"))
 	@$(CMAKE) -S $< -B $(@D) $(SURELOG_CMAKE_FLAGS)
