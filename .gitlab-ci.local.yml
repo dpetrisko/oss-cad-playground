@@ -1,0 +1,11 @@
+
+spec:
+  inputs:
+    do_build_image:
+    do_build_tools:
+---
+
+test-job:
+  script:
+    - echo "Hello"
+
