@@ -5,7 +5,7 @@ spec:
     platforms:
       type: array
       default: ["centos7", "ubuntu24.04"]
-      # passthrough
+    # passthrough
     do_clean_run:
       type: boolean
       default: false
@@ -13,11 +13,11 @@ spec:
     do_build_image:
       type: string
       options: ["never", "on_event", "on_success"]
-      default: "on_event"
+      default: "never"
     do_build_tools:
       type: string
       options: ["never", "on_event", "on_success"]
-      default: "on_event"
+      default: "on_success"
 ---
 
 ###################################################
@@ -31,7 +31,7 @@ trigger_job:
   trigger:
     strategy: depend
     include:
-      - local: .gitlab-ci.common.yml
+      - remote: 'https://gitlab.com/bespoke-silicon-group/bsg-ci-templates/-/raw/v1p0/.gitlab-ci.common.yml'
         inputs:
           do_clean_run  : $[[ inputs.do_clean_run ]]
       - local: .gitlab-ci.local.yml

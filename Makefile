@@ -12,7 +12,6 @@ venv: checkout
 tools: _check_venv
 tools: ## makes all OSS cad tools
 	@$(MAKE) build.iverilog
-	@$(MAKE) build.morty
 	@$(MAKE) build.opensta
 	@$(MAKE) build.surelog
 	@$(MAKE) build.surfer

@@ -1,24 +1,20 @@
 
+VIRTUAL_ENV ?= $(BSG_INSTALL_DIR)
+
 $(eval $(call bsg_tgt_build_submodule,iverilog,$(IVERILOG_DIR),$(BSG_TOUCH_DIR),$(BSG_PATCH_DIR),$(BSG_WORK_DIR)))
 %/.iverilog_build:
 	$(CD) $<; $(AUTOCONF) -o ./configure configure.ac
 	$(CD) $<; $</configure --prefix=$(BSG_INSTALL_DIR)
 	$(MAKE) -C $< install
 
-$(eval $(call bsg_tgt_build_submodule,morty,$(MORTY_DIR),$(BSG_TOUCH_DIR),$(BSG_PATCH_DIR),$(BSG_WORK_DIR)))
-%/.morty_build:
-	@$(CD) $<; $(CARGO) update
-	@$(CD) $<; $(CARGO) build --release
-	@$(CP) $</target/release/morty $(BSG_BIN_DIR)
-
 $(eval $(call bsg_tgt_build_submodule,opensta,$(OPENSTA_DIR),$(BSG_TOUCH_DIR),$(BSG_PATCH_DIR),$(BSG_WORK_DIR)))
 %/.opensta_build:
 	@$(CMAKE) -S $< -B $(@D) \
 		-DCMAKE_INSTALL_PREFIX=$(BSG_INSTALL_DIR) \
-		-DCUDD_INCLUDE=$(BSG_INCLUDE_DIR) \
-		-DCUDD_LIB=$(BSG_LIB_DIR)/libcudd.a \
-		-DTCL_INCLUDE_PATH=$(BSG_INCLUDE_DIR) \
-		-DTCL_LIBRARY=$(BSG_LIB_DIR)/libtcl8.6.so
+		-DCUDD_INCLUDE=$(VIRTUAL_ENV)/include \
+		-DCUDD_LIB=$(VIRTUAL_ENV)/lib/libcudd.a \
+		-DTCL_INCLUDE_PATH=$(VIRTUAL_ENV)/include \
+		-DTCL_LIBRARY=$(VIRTUAL_ENV)/lib/libtcl8.6.so
 	@$(MAKE) -C $(@D) install
 
 PACKAGE_SCRIPT=import sysconfig; print(sysconfig.get_paths()['purelib'])
@@ -30,6 +26,8 @@ $(eval $(call bsg_tgt_build_submodule,surelog,$(SURELOG_DIR),$(BSG_TOUCH_DIR),$(
 	@$(eval export SURELOG_CMAKE_FLAGS := -DCMAKE_BUILD_TYPE=Release)
 	@$(eval export SURELOG_CMAKE_FLAGS := -DWITH_LIBCXX=Off)
 	@$(eval export SURELOG_CMAKE_FLAGS += -DCMAKE_INSTALL_PREFIX=$(BSG_INSTALL_DIR))
+	@$(eval export SURELOG_CMAKE_FLAGS += -DCMAKE_INSTALL_INCLUDEDIR=$(VIRTUAL_ENV)/include)
+	@$(eval export SURELOG_CMAKE_FLAGS += -DCMAKE_INSTALL_LIBDIR=$(VIRTUAL_ENV)/lib)
 	@$(eval SITE_PACKAGE_DIR = $(shell python -c "$(PACKAGE_SCRIPT)"))
 	@$(CMAKE) -S $< -B $(@D) $(SURELOG_CMAKE_FLAGS)
 	@$(MAKE) -C $</third_party/UHDM release-shared UHDM_WITH_PYTHON=1
@@ -37,7 +35,6 @@ $(eval $(call bsg_tgt_build_submodule,surelog,$(SURELOG_DIR),$(BSG_TOUCH_DIR),$(
 
 $(eval $(call bsg_tgt_build_submodule,surfer,$(SURFER_DIR),$(BSG_TOUCH_DIR),$(BSG_PATCH_DIR),$(BSG_WORK_DIR)))
 %/.surfer_build:
-	@$(CD) $<; $(CARGO) update;
 	@$(CD) $<; $(CARGO) build --release;
 	@$(CP) $</target/release/surfer $(BSG_BIN_DIR)
 
@@ -61,7 +58,7 @@ $(eval $(call bsg_tgt_build_submodule,yosys,$(YOSYS_DIR),$(BSG_TOUCH_DIR),$(BSG_
 %/.yosys_build:
 	@$(eval export PREFIX=$(BSG_INSTALL_DIR))
 	@$(eval export TCL_VERSION=tcl8.6)
-	@$(eval export TCL_LIBS="-L$(BSG_LIB_DIR) -l$(TCL_VERSION)")
+	@$(eval export TCL_LIBS="-L$(VIRTUAL_ENV)/lib -l$(TCL_VERSION)")
 	@$(MAKE) -C $< config-gcc
 	@$(MAKE) -C $< install
 
@@ -70,15 +67,16 @@ $(eval $(call bsg_tgt_build_submodule,yslang,$(YSLANG_DIR),$(BSG_TOUCH_DIR),$(BS
 	@$(eval export YOSYS_DATA_DIR := $(shell $(YOSYS)-config --datdir))
 	@$(eval export YOSYS_PLUGIN_DIR := $(YOSYS_DATA_DIR)/plugins)
 	@$(eval export YOSYS_PREFIX := $(BSG_BIN_DIR)/)
+	@+$(MAKE) build.yosys
 	@$(MKDIR) -p $(YOSYS_PLUGIN_DIR)
-	@$(MAKE) -C $< build
-	@$(CP) $</build/*.so $(YOSYS_PLUGIN_DIR)
+	@$(CMAKE) -S $< -B $(@D) -DYOSYS_CONFIG=$(YOSYS_PREFIX)yosys-config -DCMAKE_BUILD_TYPE=Release
+	@$(MAKE) -C $(@D) install
 
 $(eval $(call bsg_tgt_build_submodule,f4pga,$(F4PGA_DIR),$(BSG_TOUCH_DIR),$(BSG_PATCH_DIR),$(BSG_WORK_DIR)))
 %/.f4pga_build:
 	@$(eval export PLUGIN_LIST := fasm params sdc design_introspection)
+	@+$(MAKE) build.yosys
 	@$(MAKE) -C $< $(addprefix install_,$(PLUGIN_LIST))
-
 
 $(eval $(call bsg_tgt_build_submodule,sv2v,$(SV2V_DIR),$(BSG_TOUCH_DIR),$(BSG_PATCH_DIR),$(BSG_WORK_DIR)))
 %/.sv2v_build:

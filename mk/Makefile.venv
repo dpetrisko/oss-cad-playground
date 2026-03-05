@@ -2,11 +2,11 @@
 .SECONDARY:
 
 %/bin/activate:
-	@$(PYTHON) -m virtualenv $(BSG_INSTALL_DIR)
-	@$(@D)/pip install --upgrade pip
-	@$(@D)/pip install -r $(BSG_MK_DIR)/requirements.txt
+	@$(PYTHON) -m venv $(CAD_VENV)
 
 %/bin/cadactivate: %/bin/activate
+	@source $(CAD_VENV)/bin/activate && python -m pip install --upgrade pip
+	@source $(CAD_VENV)/bin/activate && python -m pip install -r $(BSG_DOCKER_DIR)/requirements.txt
 	@$(ECHO) "echo 'setting metavariables'" > $@
 	@$(ECHO) "export CADACTIVATE=1" >> $@
 	@$(ECHO) "export VIRTUAL_ENV_DISABLE_PROMPT=1" >> $@
@@ -25,17 +25,11 @@
 	@$(ECHO) "export PATH=\$${PATH}:\$${SYN_RELEASE}/bin" >> $@
 	@$(ECHO) "export PATH=\$${PATH}:\$${VCS_HOME}/bin" >> $@
 	@$(ECHO) "export PATH=\$${PATH}:\$${VERDI_HOME}/bin" >> $@
-	@$(ECHO) "echo 'patching gcc paths'" >> $@
-	@$(ECHO) "export CC=$(shell which gcc)" >> $@
-	@$(ECHO) "export CXX=$(shell which g++)" >> $@
-	@$(ECHO) "echo 'updating ldd path'" >> $@
-	@$(ECHO) "export LD_LIBRARY_PATH=$*/lib:\$${LD_LIBRARY_PATH}" >> $@
-	@$(ECHO) "export LD_LIBRARY_PATH=$*/lib64:\$${LD_LIBRARY_PATH}" >> $@
 	@$(ECHO) "caddeactivate () { unset CADACTIVATE; }" >> $@
 
 # These mods are specific to sky130 fd sc hd pdk, but the technique is general
 %/pdk/install: %/bin/cadactivate
-	@$(eval PDK_ROOT ?= $(BSG_INSTALL_DIR)/pdk)
+	@$(eval PDK_ROOT ?= $(CAD_VENV)/pdk)
 	@$(eval PDK_HASH ?= 0fe599b2afb6708d281543108caf8310912f54af)
 	@$(eval PDK_FAMILY ?= sky130)
 	@$(eval PDK ?= sky130A)
@@ -69,7 +63,7 @@
 	@$(MKDIR) -p $(CUDD_BUILD)
 	@$(CD) $(CUDD_BUILD); \
 		$(WGET) -qO- $(CUDD_URL) | $(TAR) xzv --strip-components=1; \
-		./configure --prefix=$(BSG_INSTALL_DIR); \
+		./configure --prefix=$(abspath $(CAD_VENV)); \
 		$(MAKE) install
 
 %/bin/bison:
@@ -79,7 +73,7 @@
 	@$(MKDIR) -p $(BISON_BUILD)
 	@$(CD) $(BISON_BUILD); \
 		$(WGET) -qO- $(BISON_URL) | $(TAR) xzv --strip-components=1; \
-		./configure --prefix=$(BSG_INSTALL_DIR); \
+		./configure --prefix=$(abspath $(CAD_VENV)); \
 		$(MAKE) install
 
 %/bin/tclsh8.6:
@@ -89,15 +83,15 @@
 	@$(MKDIR) -p $(TCL_BUILD)
 	@$(CD) $(TCL_BUILD); \
 		$(WGET) -qO- $(TCL_URL) | $(TAR) xzv --strip-components=1; \
-		./unix/configure --prefix=$(BSG_INSTALL_DIR); \
+		./unix/configure --prefix=$(abspath $(CAD_VENV)); \
 		$(MAKE) install
 
 _build_venv:
-	@$(MAKE) $(BSG_INSTALL_DIR)/pdk/install
-	@$(MAKE) $(BSG_INSTALL_DIR)/lib/libcudd.a
-	@$(MAKE) $(BSG_INSTALL_DIR)/bin/bison
-	@$(MAKE) $(BSG_INSTALL_DIR)/bin/tclsh8.6
-	@$(ECHO) "SUCCESS: venv created; activate with 'source $(BSG_INSTALL_DIR)/bin/cadactivate'"
+	@$(MAKE) $(CAD_VENV)/pdk/install
+	@$(MAKE) $(CAD_VENV)/lib/libcudd.a
+	@$(MAKE) $(CAD_VENV)/bin/bison
+	@$(MAKE) $(CAD_VENV)/bin/tclsh8.6
+	@$(ECHO) "SUCCESS: venv created; activate with 'source $(CAD_VENV)/bin/cadactivate'"
 
 _check_venv:
 	@$(PYTHON) -c "import os; os.environ['VIRTUAL_ENV']" || ($(ECHO) "venv not detected" && $(FALSE))

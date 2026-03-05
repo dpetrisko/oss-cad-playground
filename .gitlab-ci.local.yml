@@ -5,7 +5,128 @@ spec:
     do_build_tools:
 ---
 
-test-job:
+###################################################
+## image setup
+###################################################
+
+build-image:
+  extends: [.docker_mixin]
+  before_script: !reference [.docker_anchors, docker_prefetch]
   script:
-    - echo "Hello"
+    - docker build docker -f docker/Dockerfile.${DOCKER_PLATFORM}
+        --build-arg BUILDKIT_INLINE_CACHE=1 --cache-from ${CONTAINER_IMAGE}
+        --build-arg USER_NAME="${BSG_CI_USER_NAME}"
+        --build-arg USER_ID="${BSG_CI_USER_ID}"
+        --build-arg GROUP_NAME="${BSG_CI_GROUP_NAME}"
+        --build-arg GROUP_ID="${BSG_CI_GROUP_ID}"
+        --build-arg OTHER_GROUPS="${BSG_CI_OTHER_GROUPS}"
+        -t ${CONTAINER_IMAGE}
+  after_script: !reference [.docker_anchors, docker_push]
+  rules:
+    - if: '"$[[ inputs.do_build_image ]]" =~ "/on_success/"'
+    - if: '"$[[ inputs.do_build_image ]]" =~ "/on_event/"'
+      changes:
+        paths:
+          - docker/Dockerfile.$DOCKER_PLATFORM
+          - docker/entrypoint.$DOCKER_PLATFORM.sh
+          - docker/requirements.txt
+
+###################################################
+## project definition
+###################################################
+
+.project_template:
+  extends: [.job_template]
+  image: $CONTAINER_IMAGE
+  variables:
+    # used internally
+    TOOLS_ARTIFACT: "install-${TOOL}"
+    TOOLS_WILDCARD: "install-*"
+    # exported to make sure things go in the right place
+    BSG_WORK_DIR: "${PROJECT_DIR}/${JOB_WORK_ROOT}/bsg-work"
+    BSG_INSTALL_DIR: "${PROJECT_DIR}/${JOB_WORK_ROOT}/bsg-install"
+    CAD_VENV: "${JOB_COMMON_ROOT}/.venv"
+  before_script:
+    - !reference [.job_template, before_script]
+    - COMMON_INSTALL_DIR="${JOB_COMMON_ROOT}/$(basename ${BSG_INSTALL_DIR})"
+    - echo "[CI] Initializing common mount @ ${COMMON_INSTALL_DIR}"
+    - mkdir -p ${COMMON_INSTALL_DIR} && ls ${COMMON_INSTALL_DIR}
+
+###################################################
+## job templates
+###################################################
+
+.build_venv_job:
+  extends: [.project_template]
+  script:
+    - echo "[CI] doing makefile checkout" | tee -a ${JOB_LOG}
+    - make -j${BSG_CI_CORES_PER_JOB} checkout >> ${JOB_LOG} 2>&1
+    - echo "[CI] building venv" | tee -a ${JOB_LOG}
+    - make -j${BSG_CI_CORES_PER_JOB} venv >> ${JOB_LOG} 2>&1
+
+.smoke_venv_job:
+  extends: [.project_template]
+  script:
+    - echo "[CI] checking venv installation"
+    - source ${CAD_VENV}/bin/cadactivate
+    - which python
+    - which gcc
+    - which g++
+    - make _check_venv
+
+.build_tools_job:
+  extends: [.project_template]
+  variables:
+    TOOL: "setme"
+  before_script:
+    - echo "[CI] doing makefile checkout" | tee -a ${JOB_LOG}
+    - make -j${BSG_CI_CORES_PER_JOB} checkout >> ${JOB_LOG} 2>&1
+    - source ${CAD_VENV}/bin/cadactivate
+    - which python
+    - make _check_venv
+  script:
+    - echo "[CI] building $TOOL" | tee =a ${JOB_LOG}
+    - make -j${BSG_CI_CORES_PER_JOB} build.${TOOL}
+    - echo "[CI] moving installation directory to build output" | tee -a ${JOB_LOG}
+    - mv ${BSG_INSTALL_DIR} ${JOB_SUCCESS_ROOT}/${TOOLS_ARTIFACT}
+  rules:
+    - if: '"$[[ inputs.do_build_tools ]]" =~ "/on_success|on_event/"'
+
+.build_yosys_job:
+  extends: [.build_tools_job]
+  script:
+    - echo "[CI] Building all yosys at once"
+    - echo "[CI] building yosys" | tee -a ${JOB_LOG}
+    - make -j${BSG_CI_CORES_PER_JOB} build.yosys
+    - echo "[CI] building yslang" | tee -a ${JOB_LOG}
+    - make -j${BSG_CI_CORES_PER_JOB} build.yslang
+    - echo "[CI] building f4pga" | tee -a ${JOB_LOG}
+    - make -j${BSG_CI_CORES_PER_JOB} build.f4pga
+    - echo "[CI] moving installation directory to build output" | tee -a ${JOB_LOG}
+    - mv ${BSG_INSTALL_DIR} ${JOB_SUCCESS_ROOT}/${TOOLS_ARTIFACT}
+  rules:
+    - if: '"$[[ inputs.do_build_tools ]]" =~ "/on_success|on_event/" && $DOCKER_PLATFORM == "ubuntu24.04"'
+
+###################################################
+## Actual Jobs
+###################################################
+
+build-venv:
+  extends: [.build_venv_job]
+  needs: [{job: build-image, optional: true}]
+
+smoke-venv:
+  extends: [.smoke_venv_job]
+  needs: [build-venv]
+
+build-tools:
+  extends: [.build_tools_job]
+  needs: [smoke-venv]
+  parallel:
+    matrix:
+      - TOOL: ["iverilog", "opensta", "surelog", "surfer", "svase", "verilator"]
+
+build-yosys:
+  extends: [.build_yosys_job]
+  needs: [smoke-venv]
 
