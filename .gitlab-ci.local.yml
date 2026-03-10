@@ -126,7 +126,7 @@ build-tools:
   needs: [smoke-venv]
   parallel:
     matrix:
-      - TOOL: ["iverilog", "opensta", "surelog", "surfer", "svase", "verilator"]
+      - TOOL: ["iverilog", "opensta", "surelog", "surfer", "verilator"]
 
 build-yosys:
   extends: [.build_yosys_job]

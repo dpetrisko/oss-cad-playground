@@ -38,14 +38,6 @@ $(eval $(call bsg_tgt_build_submodule,surfer,$(SURFER_DIR),$(BSG_TOUCH_DIR),$(BS
 	@$(CD) $<; $(CARGO) build --release;
 	@$(CP) $</target/release/surfer $(BSG_BIN_DIR)
 
-$(eval $(call bsg_tgt_build_submodule,svase,$(SVASE_DIR),$(BSG_TOUCH_DIR),$(BSG_PATCH_DIR),$(BSG_WORK_DIR)))
-%/.svase_build:
-	@$(eval export CMAKE_C_FLAGS := -Wno-dangling-reference)
-	@$(eval export CMAKE_CXX_FLAGS := -Wno-dangling-reference)
-	@$(MAKE) -C $</deps all
-	@$(MAKE) -C $< release
-	@$(CP) $</build/svase $(BSG_BIN_DIR)
-
 $(eval $(call bsg_tgt_build_submodule,verilator,$(VERILATOR_DIR),$(BSG_TOUCH_DIR),$(BSG_PATCH_DIR),$(BSG_WORK_DIR)))
 %/.verilator_build:
 	@$(CD) $<; $(AUTOCONF) -o ./configure configure.ac

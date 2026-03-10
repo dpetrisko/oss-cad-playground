@@ -15,7 +15,6 @@ tools: ## makes all OSS cad tools
 	@$(MAKE) build.opensta
 	@$(MAKE) build.surelog
 	@$(MAKE) build.surfer
-	@$(MAKE) build.svase
 	@$(MAKE) build.verilator
 	@$(MAKE) build.yosys
 	@$(MAKE) build.yslang

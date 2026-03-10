@@ -33,11 +33,6 @@
     url = https://github.com/ChipsAlliance/Surelog
     branch = master
     ignore = dirty
-[submodule "svase"]
-    path = svase
-    url = https://github.com/pulp-platform/svase
-    branch = master
-    ignore = dirty
 [submodule "OpenSTA"]
     path = OpenSTA
     url = https://github.com/The-OpenROAD-Project/OpenSTA.git
@@ -46,11 +41,6 @@
 [submodule "sv2v"]
     path = sv2v
     url = https://github.com/zachjs/sv2v
-    branch = master
-    ignore = dirty
-[submodule "morty"]
-    path = morty
-    url = https://github.com/pulp-platform/morty.git
     branch = master
     ignore = dirty
 [submodule "slang"]
