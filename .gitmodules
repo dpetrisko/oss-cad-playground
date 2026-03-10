@@ -53,3 +53,9 @@
     url = https://github.com/pulp-platform/morty.git
     branch = master
     ignore = dirty
+[submodule "slang"]
+    path = slang
+    url = https://github.com/MikePopoloski/slang.git
+    branch = master
+    ignore = dirty
+

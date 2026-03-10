@@ -96,6 +96,8 @@ build-image:
   extends: [.build_tools_job]
   script:
     - echo "[CI] Building all yosys at once"
+    - echo "[CI] building slang" | tee -a ${JOB_LOG}
+    - make -j${BSG_CI_CORES_PER_JOB} build.slang
     - echo "[CI] building yosys" | tee -a ${JOB_LOG}
     - make -j${BSG_CI_CORES_PER_JOB} build.yosys
     - echo "[CI] building yslang" | tee -a ${JOB_LOG}

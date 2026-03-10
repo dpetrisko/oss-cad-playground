@@ -82,3 +82,9 @@ $(eval $(call bsg_tgt_build_submodule,sv2v,$(SV2V_DIR),$(BSG_TOUCH_DIR),$(BSG_PA
 %/.sv2v_build:
 	@$(CD) $<; $(STACK) install --install-ghc --local-bin-path $(BSG_BIN_DIR)
 
+$(eval $(call bsg_tgt_build_submodule,slang,$(SLANG_DIR),$(BSG_TOUCH_DIR),$(BSG_PATCH_DIR),$(BSG_WORK_DIR)))
+%/.slang_build:
+	@$(CMAKE) -S $< -B $(@D) -DCMAKE_INSTALL_PREFIX=$(BSG_INSTALL_DIR) -DCMAKE_BUILD_TYPE=Release
+	@$(MAKE) -C $(@D) install
+	@$(PYTHON) -m pip install $<
+
