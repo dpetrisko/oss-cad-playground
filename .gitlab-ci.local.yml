@@ -59,10 +59,10 @@ build-image:
 .build_venv_job:
   extends: [.project_template]
   script:
-    - echo "[CI] doing makefile checkout" | tee -a ${JOB_LOG}
-    - make -j${BSG_CI_CORES_PER_JOB} checkout >> ${JOB_LOG} 2>&1
-    - echo "[CI] building venv" | tee -a ${JOB_LOG}
-    - make -j${BSG_CI_CORES_PER_JOB} venv >> ${JOB_LOG} 2>&1
+    - echo "[CI] doing makefile checkout"
+    - make -j${BSG_CI_CORES_PER_JOB} checkout
+    - echo "[CI] building venv"
+    - make -j${BSG_CI_CORES_PER_JOB} venv
 
 .smoke_venv_job:
   extends: [.project_template]
@@ -79,15 +79,15 @@ build-image:
   variables:
     TOOL: "setme"
   before_script:
-    - echo "[CI] doing makefile checkout" | tee -a ${JOB_LOG}
-    - make -j${BSG_CI_CORES_PER_JOB} checkout >> ${JOB_LOG} 2>&1
+    - echo "[CI] doing makefile checkout"
+    - make -j${BSG_CI_CORES_PER_JOB} checkout
     - source ${CAD_VENV}/bin/cadactivate
     - which python
     - make _check_venv
   script:
-    - echo "[CI] building $TOOL" | tee =a ${JOB_LOG}
+    - echo "[CI] building $TOOL"
     - make -j${BSG_CI_CORES_PER_JOB} build.${TOOL}
-    - echo "[CI] moving installation directory to build output" | tee -a ${JOB_LOG}
+    - echo "[CI] moving installation directory to build output"
     - mv ${BSG_INSTALL_DIR} ${JOB_SUCCESS_ROOT}/${TOOLS_ARTIFACT}
   rules:
     - if: '"$[[ inputs.do_build_tools ]]" =~ "/on_success|on_event/"'
@@ -96,15 +96,15 @@ build-image:
   extends: [.build_tools_job]
   script:
     - echo "[CI] Building all yosys at once"
-    - echo "[CI] building slang" | tee -a ${JOB_LOG}
+    - echo "[CI] building slang"
     - make -j${BSG_CI_CORES_PER_JOB} build.slang
-    - echo "[CI] building yosys" | tee -a ${JOB_LOG}
+    - echo "[CI] building yosys"
     - make -j${BSG_CI_CORES_PER_JOB} build.yosys
-    - echo "[CI] building yslang" | tee -a ${JOB_LOG}
+    - echo "[CI] building yslang"
     - make -j${BSG_CI_CORES_PER_JOB} build.yslang
-    - echo "[CI] building f4pga" | tee -a ${JOB_LOG}
+    - echo "[CI] building f4pga"
     - make -j${BSG_CI_CORES_PER_JOB} build.f4pga
-    - echo "[CI] moving installation directory to build output" | tee -a ${JOB_LOG}
+    - echo "[CI] moving installation directory to build output"
     - mv ${BSG_INSTALL_DIR} ${JOB_SUCCESS_ROOT}/${TOOLS_ARTIFACT}
   rules:
     - if: '"$[[ inputs.do_build_tools ]]" =~ "/on_success|on_event/" && $DOCKER_PLATFORM == "ubuntu24.04"'
